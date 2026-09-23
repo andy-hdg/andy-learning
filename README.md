@@ -78,10 +78,15 @@ Mistakes (a missing field, a misspelled skill key, a bad date) make the build fa
 | `npm run preview` | Preview the built site                   |
 | `npm run check`   | Type-check and validate content          |
 
-## Publishing
+## Publishing (Netlify)
 
-`.github/workflows/deploy.yml` deploys to GitHub Pages on every push to `main`
-(**Settings → Pages → Source: GitHub Actions**; GitHub Pages on a private repo needs a paid plan).
-The site will be at https://andy-hdg.github.io/andy-learning/.
+Build settings live in `netlify.toml` (`npm run build`, publish `dist/`, Node 22).
 
-To deploy to Netlify, Vercel or Cloudflare Pages instead, set `base: '/'` and your domain as `site` in `astro.config.mjs`.
+One-time setup:
+
+1. Sign in at [app.netlify.com](https://app.netlify.com) with GitHub.
+2. **Add new project → Import an existing project → GitHub**, allow access to `andy-learning`, pick it.
+3. Keep the detected settings and click **Deploy**.
+
+Every push to `main` then redeploys the site, and every pull request gets its own preview link.
+Rename the site under **Project configuration → Change project name** (e.g. `andy-learning.netlify.app`).

@@ -3,11 +3,9 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
-// Deployed to GitHub Pages at https://andy-hdg.github.io/andy-learning/
-// When deploying to a root domain (Netlify, Vercel...), set base to '/'.
+// Deployed on Netlify, which sets URL to the site's main address during builds.
 export default defineConfig({
-  site: 'https://andy-hdg.github.io',
-  base: '/andy-learning',
+  site: process.env.URL ?? 'https://andy-learning.netlify.app',
   integrations: [
     sitemap({
       i18n: { defaultLocale: 'vi', locales: { vi: 'vi-VN', en: 'en-US' } },
