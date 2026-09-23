@@ -1,0 +1,23 @@
+---
+import Icon from './Icon.astro';
+import { localizePath, type Lang } from '../lib/i18n';
+import { PROFILE } from '../data/profile';
+
+const { lang } = Astro.props as { lang: Lang };
+---
+
+<div
+  class="sticky lg:hidden top-0 z-30 flex h-16 w-full justify-center bg-base-100/90 backdrop-blur text-base-content shadow-sm"
+>
+  <div class="navbar">
+    <div class="navbar-start">
+      <label for="my-drawer" class="btn btn-square btn-ghost" aria-label="Menu">
+        <Icon name="menu" />
+      </label>
+    </div>
+    <div class="navbar-center">
+      <a class="btn btn-ghost text-xl" href={localizePath(lang, '/')}>{PROFILE.name}</a>
+    </div>
+    <div class="navbar-end"></div>
+  </div>
+</div>

@@ -1,0 +1,7 @@
+# Fields of study. The key (e.g. "web") is used in learning items and skills.
+web:
+  name: { vi: Lập trình web, en: Web development }
+tools:
+  name: { vi: Công cụ, en: Tools }
+language:
+  name: { vi: Ngoại ngữ, en: Languages }

@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LearningCard from '../components/LearningCard.astro';
+import FilterBar from '../components/FilterBar.astro';
+import { loadData, type LearningEntry } from '../lib/data';
+import { t, UI, type Lang } from '../lib/i18n';
+
+const { lang } = Astro.props as { lang: Lang };
+const ui = UI[lang];
+const d = await loadData();
+const certifiedIds = new Set(d.certificates.map((c) => c.data.learning?.id));
+
+const byYear = new Map<number, LearningEntry[]>();
+for (const entry of d.learning) {
+  const year = entry.data.startedAt.getUTCFullYear();
+  byYear.set(year, [...(byYear.get(year) ?? []), entry]);
+}
+
+const usedCategories = new Set(d.learning.map((l) => l.data.category.id));
+const categoryOptions = d.categories
+  .filter((c) => usedCategories.has(c.id))
+  .map((c) => ({ value: c.id, label: t(c.data.name, lang) }));
+const statusOptions = (['learning', 'done', 'planned'] as const).map((s) => ({ value: s, label: ui.status[s] }));
+---
+
+<BaseLayout lang={lang} path="/learning/" title={ui.nav.learning} description={ui.learningIntro} active="learning">
+  <div data-filter-root>
+    <h1 class="text-3xl font-bold">{ui.nav.learning}</h1>
+    <p class="mt-2 mb-6 opacity-80">{ui.learningIntro}</p>
+
+    <div class="flex flex-col gap-3 mb-8">
+      <FilterBar lang={lang} group="category" label={ui.category} options={categoryOptions} />
+      <FilterBar lang={lang} group="status" label={ui.status_} options={statusOptions} />
+    </div>
+
+    {
+      [...byYear].map(([year, entries]) => (
+        <section data-filter-section class="mb-8">
+          <h2 class="text-sm font-semibold uppercase tracking-wider opacity-60 mb-1">{year}</h2>
+          <ul>
+            {entries.map((entry) => (
+              <li data-item data-f-category={entry.data.category.id} data-f-status={entry.data.status}>
+                <LearningCard
+                  lang={lang}
+                  entry={entry}
+                  categoryName={t(d.categoryById.get(entry.data.category.id)?.data.name, lang)}
+                  hasCertificate={certifiedIds.has(entry.id)}
+                />
+                <div class="divider my-0" />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+    <p data-filter-empty hidden class="bg-base-200 border-l-4 border-secondary p-4">{ui.noResults}</p>
+  </div>
+</BaseLayout>

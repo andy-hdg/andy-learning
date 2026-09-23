@@ -1,0 +1,152 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CertificateVisual from '../components/CertificateVisual.astro';
+import Icon from '../components/Icon.astro';
+import { isExpired, loadData, type CertificateEntry } from '../lib/data';
+import { formatDay, localizePath, t, UI, withBase, type Lang } from '../lib/i18n';
+
+interface Props {
+  lang: Lang;
+  entry: CertificateEntry;
+}
+
+const { lang, entry } = Astro.props;
+const ui = UI[lang];
+const d = await loadData();
+const { title, issuer, issuedAt, expiresAt, credentialId, verifyUrl, image, score, description, learning, skills } =
+  entry.data;
+const name = t(title, lang);
+const issuerEntry = d.issuerById.get(issuer.id);
+const issuerName = issuerEntry?.data.name ?? '';
+const learningEntry = learning ? d.learningById.get(learning.id) : undefined;
+const expired = isExpired(entry);
+---
+
+<BaseLayout
+  lang={lang}
+  path={`/certificates/${entry.id}/`}
+  title={name}
+  description={`${name} · ${issuerName}`}
+  active="certificates"
+>
+  <article class="max-w-[750px] mx-auto">
+    <a href={localizePath(lang, '/certificates/')} class="btn btn-ghost btn-sm -ml-3 mb-4">
+      <Icon name="arrow-left" class="w-4 h-4" />
+      {ui.back}
+    </a>
+
+    <div class="rounded-box overflow-hidden border border-base-300">
+      {
+        image ? (
+          <a href={withBase(image)} target="_blank" rel="noopener">
+            <CertificateVisual title={name} issuer={issuerName} image={image} class="aspect-auto object-contain" />
+          </a>
+        ) : (
+          <CertificateVisual title={name} issuer={issuerName} />
+        )
+      }
+    </div>
+
+    <h1 class="text-4xl font-bold mt-6 mb-1">{name}</h1>
+    <p class="text-lg">
+      {
+        issuerEntry?.data.website ? (
+          <a href={issuerEntry.data.website} target="_blank" rel="noopener" class="link link-hover font-semibold">
+            {issuerName}
+          </a>
+        ) : (
+          <span class="font-semibold">{issuerName}</span>
+        )
+      }
+    </p>
+    {description && <p class="mt-3 opacity-80">{t(description, lang)}</p>}
+
+    <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 mt-6 items-center">
+      <dt class="opacity-60">{ui.issued}</dt>
+      <dd>{formatDay(issuedAt, lang)}</dd>
+      <dt class="opacity-60">{ui.expires}</dt>
+      <dd>
+        {
+          expiresAt ? (
+            <span class="flex flex-wrap items-center gap-2">
+              {formatDay(expiresAt, lang)}
+              {expired && <span class="badge badge-error">{ui.expired}</span>}
+            </span>
+          ) : (
+            ui.noExpiry
+          )
+        }
+      </dd>
+      {
+        score && (
+          <>
+            <dt class="opacity-60">{ui.score}</dt>
+            <dd class="font-semibold">{score}</dd>
+          </>
+        )
+      }
+      {
+        credentialId && (
+          <>
+            <dt class="opacity-60">{ui.credentialId}</dt>
+            <dd class="flex flex-wrap items-center gap-2">
+              <code class="select-all bg-base-200 px-2 py-0.5 rounded">{credentialId}</code>
+              <button type="button" class="btn btn-xs btn-ghost" data-copy={credentialId} data-copied-label={ui.copied}>
+                {ui.copy}
+              </button>
+            </dd>
+          </>
+        )
+      }
+    </dl>
+
+    {
+      verifyUrl && (
+        <a href={verifyUrl} target="_blank" rel="noopener" class="btn mt-6">
+          {ui.verify}
+          <Icon name="external" class="w-4 h-4" />
+        </a>
+      )
+    }
+
+    {
+      (learningEntry || skills.length > 0) && <div class="divider my-8" />
+    }
+    {
+      learningEntry && (
+        <p class="mb-4">
+          <span class="opacity-60">{ui.learnedFrom}: </span>
+          <a href={localizePath(lang, `/learning/${learningEntry.id}/`)} class="link">
+            {t(learningEntry.data.title, lang)}
+          </a>
+        </p>
+      )
+    }
+    {
+      skills.length > 0 && (
+        <div class="flex flex-wrap gap-2">
+          {skills.map((ref) => (
+            <a href={localizePath(lang, `/skills/#${ref.id}`)} class="badge badge-outline hover:badge-neutral">
+              {t(d.skillById.get(ref.id)?.data.name, lang)}
+            </a>
+          ))}
+        </div>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<script>
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+    const original = button.textContent;
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.copy ?? '');
+        button.textContent = button.dataset.copiedLabel ?? original;
+        setTimeout(() => (button.textContent = original), 1500);
+      } catch {
+        // Clipboard unavailable: the code element is still selectable.
+      }
+    });
+  }
+</script>

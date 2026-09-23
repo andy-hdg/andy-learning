@@ -1,0 +1,85 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import TimeLine from '../components/TimeLine.astro';
+import Icon from '../components/Icon.astro';
+import { loadData } from '../lib/data';
+import { formatMonth, localizePath, t, UI, type Lang } from '../lib/i18n';
+import { PROFILE } from '../data/profile';
+
+const { lang } = Astro.props as { lang: Lang };
+const ui = UI[lang];
+const d = await loadData();
+---
+
+<BaseLayout lang={lang} path="/about/" title={ui.nav.about} active="about">
+  <h2 class="text-3xl font-bold mb-5">{ui.profile}</h2>
+  <div class="mb-10 space-y-3 max-w-prose">
+    {PROFILE.about.map((paragraph) => <p>{t(paragraph, lang)}</p>)}
+  </div>
+
+  {
+    PROFILE.education.length > 0 && (
+      <>
+        <h2 class="text-3xl font-bold mb-5">{ui.education}</h2>
+        <div class="time-line-container grid mb-10">
+          {PROFILE.education.map((item) => (
+            <TimeLine title={t(item.title, lang)} subtitle={t(item.subtitle, lang)}>
+              {item.description && t(item.description, lang)}
+            </TimeLine>
+          ))}
+        </div>
+      </>
+    )
+  }
+
+  {
+    d.certificates.length > 0 && (
+      <>
+        <h2 class="text-3xl font-bold mb-5">{ui.nav.certificates}</h2>
+        <ul class="list-disc mx-6 mb-10 grid gap-2">
+          {d.certificates.map((c) => (
+            <li>
+              <a class="link link-hover" href={localizePath(lang, `/certificates/${c.id}/`)}>
+                {t(c.data.title, lang)}
+              </a>
+              <span class="opacity-60">
+                {' '}
+                · {d.issuerById.get(c.data.issuer.id)?.data.name} · {formatMonth(c.data.issuedAt, lang)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </>
+    )
+  }
+
+  {
+    d.skills.length > 0 && (
+      <>
+        <h2 class="text-3xl font-bold mb-5">{ui.nav.skills}</h2>
+        <ul class="list-disc md:columns-3 columns-2 mx-6 mb-10">
+          {d.skills.map((s) => (
+            <li>
+              <a class="link link-hover" href={localizePath(lang, `/skills/#${s.id}`)}>
+                {t(s.data.name, lang)}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </>
+    )
+  }
+
+  <h2 class="text-3xl font-bold mb-5">{ui.contact}</h2>
+  <div class="flex flex-col gap-3">
+    {PROFILE.email && <p class="select-all">{PROFILE.email}</p>}
+    {
+      PROFILE.links.map((link) => (
+        <a href={link.url} target="_blank" rel="noopener" class="link link-hover inline-flex items-center gap-2 w-fit">
+          <Icon name={link.icon} />
+          {link.label}
+        </a>
+      ))
+    }
+  </div>
+</BaseLayout>

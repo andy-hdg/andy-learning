@@ -1,0 +1,50 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import SideBar, { type NavId } from '../components/SideBar.astro';
+import { localizePath, t, type Lang } from '../lib/i18n';
+import { PROFILE } from '../data/profile';
+
+interface Props {
+  lang: Lang;
+  /** Language-neutral path of this page, e.g. "/learning/html-css/". */
+  path: string;
+  title?: string;
+  description?: string;
+  active?: NavId;
+  ogType?: string;
+  includeSidebar?: boolean;
+}
+
+const { lang, path, title, description, active, ogType, includeSidebar = true } = Astro.props;
+const fullTitle = title ? `${title} · ${PROFILE.name}` : `${PROFILE.name} · ${t(PROFILE.headline, lang)}`;
+const alternates = { vi: localizePath('vi', path), en: localizePath('en', path) };
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <BaseHead
+      title={fullTitle}
+      description={description ?? t(PROFILE.intro, lang)}
+      ogType={ogType}
+      alternates={alternates}
+    />
+  </head>
+  <body>
+    <div class="bg-base-100 drawer lg:drawer-open">
+      <input id="my-drawer" type="checkbox" class="drawer-toggle" />
+      <div class="drawer-content bg-base-100 min-h-screen flex flex-col">
+        <Header lang={lang} />
+        <div class="md:flex md:justify-center grow">
+          <main class="p-6 pt-10 w-full lg:max-w-[900px] max-w-[100vw]">
+            <slot />
+          </main>
+        </div>
+        <Footer lang={lang} />
+      </div>
+      {includeSidebar && <SideBar lang={lang} active={active} alternates={alternates} />}
+    </div>
+  </body>
+</html>

@@ -1,0 +1,40 @@
+---
+import CertificateVisual from './CertificateVisual.astro';
+import { formatMonth, localizePath, t, UI, type Lang } from '../lib/i18n';
+import { isExpired, type CertificateEntry } from '../lib/data';
+
+interface Props {
+  lang: Lang;
+  entry: CertificateEntry;
+  issuerName: string;
+}
+
+const { lang, entry, issuerName } = Astro.props;
+const ui = UI[lang];
+const { title, issuedAt, expiresAt, image, score } = entry.data;
+const name = t(title, lang);
+---
+
+<a
+  href={localizePath(lang, `/certificates/${entry.id}/`)}
+  class="card bg-base-100 border border-base-300 overflow-hidden h-full transition ease-in-out hover:shadow-xl hover:scale-[102%]"
+>
+  <figure><CertificateVisual title={name} issuer={issuerName} image={image} /></figure>
+  <div class="card-body p-5 gap-1">
+    <h3 class="card-title text-base leading-snug">{name}</h3>
+    <p class="text-sm opacity-80 grow-0">{issuerName} · {formatMonth(issuedAt, lang)}</p>
+    <div class="card-actions justify-end mt-2">
+      {score && <span class="badge badge-outline">{ui.score}: {score}</span>}
+      {
+        expiresAt &&
+          (isExpired(entry) ? (
+            <span class="badge badge-error">{ui.expired}</span>
+          ) : (
+            <span class="badge badge-ghost">
+              {ui.validUntil} {formatMonth(expiresAt, lang)}
+            </span>
+          ))
+      }
+    </div>
+  </div>
+</a>

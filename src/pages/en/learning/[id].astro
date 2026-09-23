@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
-import LearningDetailView from '../../views/LearningDetailView.astro';
+import LearningDetailView from '../../../views/LearningDetailView.astro';
 
 export async function getStaticPaths() {
   const entries = await getCollection('learning');
@@ -10,4 +10,4 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 ---
 
-<LearningDetailView lang="vi" entry={entry} />
+<LearningDetailView lang="en" entry={entry} />

@@ -1,0 +1,112 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LearningCard from '../components/LearningCard.astro';
+import CertificateCard from '../components/CertificateCard.astro';
+import SectionTitle from '../components/SectionTitle.astro';
+import { loadData } from '../lib/data';
+import { localizePath, t, UI, type Lang } from '../lib/i18n';
+import { PROFILE } from '../data/profile';
+
+const { lang } = Astro.props as { lang: Lang };
+const ui = UI[lang];
+const d = await loadData();
+
+const inProgress = d.learning.filter((l) => l.data.status === 'learning');
+const done = d.learning.filter((l) => l.data.status === 'done');
+const recentlyDone = [...done]
+  .sort((a, b) => (b.data.completedAt?.getTime() ?? 0) - (a.data.completedAt?.getTime() ?? 0))
+  .slice(0, 3);
+const featured = d.certificates.filter((c) => c.data.featured);
+const shownCertificates = (featured.length ? featured : d.certificates).slice(0, 4);
+const totalHours = d.learning.reduce((sum, l) => sum + (l.data.hours ?? 0), 0);
+const certifiedIds = new Set(d.certificates.map((c) => c.data.learning?.id));
+const github = PROFILE.links.find((l) => l.icon === 'github');
+
+const stats = [
+  { value: done.length, label: ui.stats.done },
+  { value: d.certificates.length, label: ui.stats.certificates },
+  { value: totalHours, label: ui.stats.hours },
+  { value: inProgress.length, label: ui.stats.learning },
+];
+---
+
+<BaseLayout lang={lang} path="/" active="home">
+  <div class="pb-10 mt-5">
+    <div class="text-xl py-1">{ui.hello}</div>
+    <h1 class="text-5xl font-bold">{PROFILE.name}</h1>
+    <div class="text-3xl py-3 font-bold">{t(PROFILE.headline, lang)}</div>
+    <p class="text-lg py-2 max-w-prose">{t(PROFILE.intro, lang)}</p>
+    <div class="mt-6 flex flex-wrap gap-4">
+      <a class="btn" href={localizePath(lang, '/certificates/')}>{ui.viewCertificates}</a>
+      {github && <a class="btn btn-outline" href={github.url} target="_blank" rel="noopener">GitHub</a>}
+    </div>
+  </div>
+
+  <div class="stats stats-vertical sm:stats-horizontal w-full border border-base-300">
+    {
+      stats.map((s) => (
+        <div class="stat">
+          <div class="stat-value tabular-nums">{s.value}</div>
+          <div class="stat-desc text-sm">{s.label}</div>
+        </div>
+      ))
+    }
+  </div>
+
+  {
+    inProgress.length > 0 && (
+      <>
+        <SectionTitle href={localizePath(lang, '/learning/')} linkLabel={ui.seeAll}>
+          {ui.nowLearning}
+        </SectionTitle>
+        {inProgress.map((entry) => (
+          <>
+            <LearningCard
+              lang={lang}
+              entry={entry}
+              categoryName={t(d.categoryById.get(entry.data.category.id)?.data.name, lang)}
+              hasCertificate={certifiedIds.has(entry.id)}
+            />
+            <div class="divider my-0" />
+          </>
+        ))}
+      </>
+    )
+  }
+
+  {
+    shownCertificates.length > 0 && (
+      <>
+        <SectionTitle href={localizePath(lang, '/certificates/')} linkLabel={ui.seeAll}>
+          {ui.featuredCertificates}
+        </SectionTitle>
+        <div class="grid sm:grid-cols-2 gap-6">
+          {shownCertificates.map((entry) => (
+            <CertificateCard lang={lang} entry={entry} issuerName={d.issuerById.get(entry.data.issuer.id)?.data.name ?? ''} />
+          ))}
+        </div>
+      </>
+    )
+  }
+
+  {
+    recentlyDone.length > 0 && (
+      <>
+        <SectionTitle href={localizePath(lang, '/learning/')} linkLabel={ui.seeAll}>
+          {ui.recentlyCompleted}
+        </SectionTitle>
+        {recentlyDone.map((entry) => (
+          <>
+            <LearningCard
+              lang={lang}
+              entry={entry}
+              categoryName={t(d.categoryById.get(entry.data.category.id)?.data.name, lang)}
+              hasCertificate={certifiedIds.has(entry.id)}
+            />
+            <div class="divider my-0" />
+          </>
+        ))}
+      </>
+    )
+  }
+</BaseLayout>

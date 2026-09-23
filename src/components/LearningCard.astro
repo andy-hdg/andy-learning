@@ -1,0 +1,44 @@
+---
+import StatusBadge from './StatusBadge.astro';
+import { formatMonth, localizePath, t, type Lang } from '../lib/i18n';
+import type { LearningEntry } from '../lib/data';
+
+interface Props {
+  lang: Lang;
+  entry: LearningEntry;
+  categoryName: string;
+  hasCertificate?: boolean;
+}
+
+const { lang, entry, categoryName, hasCertificate = false } = Astro.props;
+const { title, status, source, startedAt, completedAt, hours, progress, summary } = entry.data;
+const end = completedAt
+  ? formatMonth(completedAt, lang)
+  : status === 'learning'
+    ? lang === 'vi' ? 'nay' : 'now'
+    : '';
+const period = end ? `${formatMonth(startedAt, lang)} – ${end}` : formatMonth(startedAt, lang);
+const meta = [period, source, hours ? `${hours} ${lang === 'vi' ? 'giờ' : 'h'}` : ''].filter(Boolean).join(' · ');
+---
+
+<a
+  href={localizePath(lang, `/learning/${entry.id}/`)}
+  class="block rounded-lg bg-base-100 p-4 hover:shadow-xl transition ease-in-out hover:scale-[102%]"
+>
+  <div class="text-sm opacity-70">{meta}</div>
+  <h3 class="text-xl font-bold mt-1">{t(title, lang)}</h3>
+  {summary && <p class="py-1">{t(summary, lang)}</p>}
+  {
+    status === 'learning' && progress !== undefined && (
+      <div class="flex items-center gap-3 mt-2 max-w-sm">
+        <progress class="progress progress-warning" value={progress} max="100" />
+        <span class="text-sm tabular-nums">{progress}%</span>
+      </div>
+    )
+  }
+  <div class="flex flex-wrap gap-2 justify-end mt-2">
+    <StatusBadge lang={lang} status={status} />
+    <span class="badge badge-outline">{categoryName}</span>
+    {hasCertificate && <span class="badge badge-outline">{lang === 'vi' ? 'Có chứng chỉ' : 'Certified'}</span>}
+  </div>
+</a>

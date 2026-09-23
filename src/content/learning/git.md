@@ -1,7 +1,14 @@
 ---
+# EXAMPLE: replace with your own
 title: Git & GitHub
-category: Công cụ
-date: 2026-02
+category: tools
 status: done
-description: Commit, branch, pull request, GitHub Pages.
+source: YouTube
+startedAt: 2026-02-01
+completedAt: 2026-02-10
+hours: 8
+summary:
+  vi: Commit, branch, pull request, GitHub Pages.
+  en: Commits, branches, pull requests, GitHub Pages.
+skills: [git]
 ---

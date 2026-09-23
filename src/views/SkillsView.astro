@@ -1,0 +1,71 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadData } from '../lib/data';
+import { localizePath, t, UI, type Lang } from '../lib/i18n';
+
+const { lang } = Astro.props as { lang: Lang };
+const ui = UI[lang];
+const d = await loadData();
+
+const groups = d.categories
+  .map((category) => ({
+    category,
+    skills: d.skills
+      .filter((s) => s.data.category.id === category.id)
+      .sort((a, b) => b.data.level - a.data.level),
+  }))
+  .filter((g) => g.skills.length > 0);
+---
+
+<BaseLayout lang={lang} path="/skills/" title={ui.nav.skills} description={ui.skillsIntro} active="skills">
+  <h1 class="text-3xl font-bold">{ui.nav.skills}</h1>
+  <p class="mt-2 mb-6 opacity-80">{ui.skillsIntro}</p>
+
+  {
+    groups.map(({ category, skills }) => (
+      <section class="mb-10">
+        <h2 class="text-sm font-semibold uppercase tracking-wider opacity-60 mb-3">{t(category.data.name, lang)}</h2>
+        <div class="grid sm:grid-cols-2 gap-4">
+          {skills.map((skill) => {
+            const learning = d.learning.filter((l) => l.data.skills.some((s) => s.id === skill.id));
+            const certificates = d.certificates.filter((c) => c.data.skills.some((s) => s.id === skill.id));
+            const level = skill.data.level;
+            return (
+              <div id={skill.id} class="card bg-base-100 border border-base-300 scroll-mt-20 target:border-base-content">
+                <div class="card-body p-5 gap-2">
+                  <div class="flex flex-wrap items-baseline justify-between gap-2">
+                    <h3 class="card-title text-lg">{t(skill.data.name, lang)}</h3>
+                    <span class="text-sm opacity-70">{ui.levels[level]}</span>
+                  </div>
+                  <div class="flex gap-1" role="img" aria-label={`${ui.level}: ${level}/5`}>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <span class:list={['h-2 flex-1 rounded-full', n <= level ? 'bg-base-content' : 'bg-base-300']} />
+                    ))}
+                  </div>
+                  {(learning.length > 0 || certificates.length > 0) && (
+                    <ul class="text-sm mt-1 space-y-1">
+                      {learning.map((l) => (
+                        <li>
+                          <a class="link link-hover" href={localizePath(lang, `/learning/${l.id}/`)}>
+                            {t(l.data.title, lang)}
+                          </a>
+                        </li>
+                      ))}
+                      {certificates.map((c) => (
+                        <li>
+                          <a class="link link-hover font-semibold" href={localizePath(lang, `/certificates/${c.id}/`)}>
+                            {t(c.data.title, lang)}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    ))
+  }
+</BaseLayout>

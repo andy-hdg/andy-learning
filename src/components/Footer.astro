@@ -1,0 +1,15 @@
+---
+import { UI, type Lang } from '../lib/i18n';
+import { PROFILE } from '../data/profile';
+
+const { lang } = Astro.props as { lang: Lang };
+---
+
+<footer class="footer footer-center block mb-5 pt-10 text-sm">
+  <div class="pb-2">&copy; {new Date().getFullYear()} {PROFILE.name}</div>
+  <div class="inline opacity-75">
+    {UI[lang].footer} <a href="https://astro.build" target="_blank" rel="noopener" class="font-bold">Astro</a>
+    <span aria-hidden="true">·</span>
+    <a href="https://github.com/manuelernestog/astrofy" target="_blank" rel="noopener" class="font-bold">Astrofy</a>
+  </div>
+</footer>

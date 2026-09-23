@@ -1,0 +1,7 @@
+# Organizations that issue certificates. The key is used in certificate files.
+freecodecamp:
+  name: freeCodeCamp
+  website: https://www.freecodecamp.org
+british-council:
+  name: British Council
+  website: https://www.britishcouncil.vn

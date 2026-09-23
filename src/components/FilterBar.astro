@@ -1,0 +1,51 @@
+---
+import { UI, type Lang } from '../lib/i18n';
+
+interface Props {
+  lang: Lang;
+  /** Matches the `data-f-<group>` attribute on filtered items. */
+  group: string;
+  label: string;
+  options: { value: string; label: string }[];
+}
+const { lang, group, label, options } = Astro.props;
+---
+
+<fieldset class="flex flex-wrap items-center gap-2" data-filter-group={group}>
+  <legend class="sr-only">{label}</legend>
+  <span class="text-sm opacity-70 w-24 shrink-0" aria-hidden="true">{label}</span>
+  <input type="radio" class="btn btn-sm" name={`filter-${group}`} value="" aria-label={UI[lang].all} checked />
+  {
+    options.map((option) => (
+      <input type="radio" class="btn btn-sm" name={`filter-${group}`} value={option.value} aria-label={option.label} />
+    ))
+  }
+</fieldset>
+
+<script>
+  // Filters `[data-item]` elements inside each `[data-filter-root]` by their `data-f-<group>` attributes.
+  for (const root of document.querySelectorAll<HTMLElement>('[data-filter-root]')) {
+    const selected = new Map<string, string>();
+
+    const apply = () => {
+      let shown = 0;
+      for (const item of root.querySelectorAll<HTMLElement>('[data-item]')) {
+        const visible = [...selected].every(([group, value]) => !value || item.getAttribute(`data-f-${group}`) === value);
+        item.hidden = !visible;
+        if (visible) shown++;
+      }
+      for (const section of root.querySelectorAll<HTMLElement>('[data-filter-section]')) {
+        section.hidden = !section.querySelector('[data-item]:not([hidden])');
+      }
+      const empty = root.querySelector<HTMLElement>('[data-filter-empty]');
+      if (empty) empty.hidden = shown > 0;
+    };
+
+    for (const group of root.querySelectorAll<HTMLElement>('[data-filter-group]')) {
+      group.addEventListener('change', (event) => {
+        selected.set(group.dataset.filterGroup!, (event.target as HTMLInputElement).value);
+        apply();
+      });
+    }
+  }
+</script>

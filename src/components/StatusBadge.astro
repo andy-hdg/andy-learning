@@ -1,0 +1,12 @@
+---
+import { UI, type Lang } from '../lib/i18n';
+
+interface Props {
+  lang: Lang;
+  status: 'planned' | 'learning' | 'done';
+}
+const { lang, status } = Astro.props;
+const color = { planned: 'badge-ghost', learning: 'badge-warning', done: 'badge-neutral' }[status];
+---
+
+<span class:list={['badge', color]}>{UI[lang].status[status]}</span>

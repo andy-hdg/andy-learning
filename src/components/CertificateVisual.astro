@@ -1,0 +1,26 @@
+---
+import { withBase } from '../lib/i18n';
+
+interface Props {
+  title: string;
+  issuer: string;
+  image?: string;
+  class?: string;
+}
+const { title, issuer, image, class: className = '' } = Astro.props;
+---
+
+{
+  image ? (
+    <img src={withBase(image)} alt={title} loading="lazy" class:list={['w-full aspect-[4/3] object-cover', className]} />
+  ) : (
+    <div class:list={['w-full aspect-[4/3] bg-base-200 p-4', className]} aria-hidden="true">
+      <div class="w-full h-full border-4 border-double border-base-content/25 rounded flex flex-col items-center justify-center text-center gap-1 p-3">
+        <span class="text-[10px] uppercase tracking-[0.25em] opacity-60">Certificate</span>
+        <span class="font-bold leading-tight line-clamp-3">{title}</span>
+        <span class="text-xs opacity-70">{issuer}</span>
+        <span class="mt-2 w-9 h-9 rounded-full border-2 border-dashed border-base-content/40" />
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,131 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CertificateCard from '../components/CertificateCard.astro';
+import StatusBadge from '../components/StatusBadge.astro';
+import Icon from '../components/Icon.astro';
+import { loadData, type LearningEntry } from '../lib/data';
+import { formatDay, localizePath, t, UI, type Lang } from '../lib/i18n';
+
+interface Props {
+  lang: Lang;
+  entry: LearningEntry;
+}
+
+const { lang, entry } = Astro.props;
+const ui = UI[lang];
+const d = await loadData();
+const { title, category, status, source, sourceUrl, startedAt, completedAt, hours, progress, summary, skills } =
+  entry.data;
+const name = t(title, lang);
+const certificates = d.certificates.filter((c) => c.data.learning?.id === entry.id);
+
+const englishNotes = lang === 'en' ? (await getCollection('learningEn')).find((n) => n.id === entry.id) : undefined;
+const notesEntry = englishNotes ?? entry;
+const hasNotes = Boolean(notesEntry.body?.trim());
+const { Content } = await render(notesEntry);
+---
+
+<BaseLayout lang={lang} path={`/learning/${entry.id}/`} title={name} description={t(summary, lang)} active="learning" ogType="article">
+  <article class="max-w-[750px] mx-auto">
+    <a href={localizePath(lang, '/learning/')} class="btn btn-ghost btn-sm -ml-3 mb-4">
+      <Icon name="arrow-left" class="w-4 h-4" />
+      {ui.back}
+    </a>
+    <h1 class="text-4xl font-bold my-2">{name}</h1>
+    <div class="flex flex-wrap gap-2 my-3">
+      <StatusBadge lang={lang} status={status} />
+      <span class="badge badge-outline">{t(d.categoryById.get(category.id)?.data.name, lang)}</span>
+    </div>
+    {summary && <p class="text-lg opacity-80">{t(summary, lang)}</p>}
+
+    <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 mt-6">
+      {
+        source && (
+          <>
+            <dt class="opacity-60">{ui.source}</dt>
+            <dd>
+              {sourceUrl ? (
+                <a href={sourceUrl} target="_blank" rel="noopener" class="link">
+                  {source}
+                </a>
+              ) : (
+                source
+              )}
+            </dd>
+          </>
+        )
+      }
+      <dt class="opacity-60">{ui.started}</dt>
+      <dd>{formatDay(startedAt, lang)}</dd>
+      {
+        completedAt && (
+          <>
+            <dt class="opacity-60">{ui.completed}</dt>
+            <dd>{formatDay(completedAt, lang)}</dd>
+          </>
+        )
+      }
+      {
+        hours !== undefined && (
+          <>
+            <dt class="opacity-60">{ui.hours}</dt>
+            <dd class="tabular-nums">
+              {hours} {ui.hoursUnit}
+            </dd>
+          </>
+        )
+      }
+      {
+        status === 'learning' && progress !== undefined && (
+          <>
+            <dt class="opacity-60">{ui.progress}</dt>
+            <dd class="flex items-center gap-3 max-w-xs">
+              <progress class="progress progress-warning" value={progress} max="100" />
+              <span class="tabular-nums">{progress}%</span>
+            </dd>
+          </>
+        )
+      }
+    </dl>
+
+    {
+      skills.length > 0 && (
+        <div class="flex flex-wrap gap-2 mt-6">
+          {skills.map((ref) => (
+            <a href={localizePath(lang, `/skills/#${ref.id}`)} class="badge badge-outline hover:badge-neutral">
+              {t(d.skillById.get(ref.id)?.data.name, lang)}
+            </a>
+          ))}
+        </div>
+      )
+    }
+
+    {
+      hasNotes && (
+        <>
+          <div class="divider my-8" />
+          <h2 class="text-2xl font-bold mb-2">{ui.notes}</h2>
+          {lang === 'en' && !englishNotes && <p class="text-sm opacity-70 mb-4">{ui.notesInVietnameseOnly}</p>}
+          <div class="prose max-w-none" lang={englishNotes || lang === 'vi' ? lang : 'vi'}>
+            <Content />
+          </div>
+        </>
+      )
+    }
+
+    {
+      certificates.length > 0 && (
+        <>
+          <div class="divider my-8" />
+          <h2 class="text-2xl font-bold mb-4">{ui.relatedCertificates}</h2>
+          <div class="grid sm:grid-cols-2 gap-6">
+            {certificates.map((c) => (
+              <CertificateCard lang={lang} entry={c} issuerName={d.issuerById.get(c.data.issuer.id)?.data.name ?? ''} />
+            ))}
+          </div>
+        </>
+      )
+    }
+  </article>
+</BaseLayout>

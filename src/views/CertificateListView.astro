@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CertificateCard from '../components/CertificateCard.astro';
+import FilterBar from '../components/FilterBar.astro';
+import { loadData } from '../lib/data';
+import { UI, type Lang } from '../lib/i18n';
+
+const { lang } = Astro.props as { lang: Lang };
+const ui = UI[lang];
+const d = await loadData();
+const usedIssuers = new Set(d.certificates.map((c) => c.data.issuer.id));
+const issuerOptions = d.issuers.filter((i) => usedIssuers.has(i.id)).map((i) => ({ value: i.id, label: i.data.name }));
+---
+
+<BaseLayout
+  lang={lang}
+  path="/certificates/"
+  title={ui.nav.certificates}
+  description={ui.certificatesIntro}
+  active="certificates"
+>
+  <div data-filter-root>
+    <h1 class="text-3xl font-bold">{ui.nav.certificates}</h1>
+    <p class="mt-2 mb-6 opacity-80">{ui.certificatesIntro}</p>
+
+    {
+      issuerOptions.length > 1 && (
+        <div class="mb-8">
+          <FilterBar lang={lang} group="issuer" label={ui.issuer} options={issuerOptions} />
+        </div>
+      )
+    }
+
+    <ul class="grid sm:grid-cols-2 gap-6">
+      {
+        d.certificates.map((entry) => (
+          <li data-item data-f-issuer={entry.data.issuer.id}>
+            <CertificateCard lang={lang} entry={entry} issuerName={d.issuerById.get(entry.data.issuer.id)?.data.name ?? ''} />
+          </li>
+        ))
+      }
+    </ul>
+    <p data-filter-empty hidden={d.certificates.length > 0} class="bg-base-200 border-l-4 border-secondary p-4">
+      {ui.noResults}
+    </p>
+  </div>
+</BaseLayout>

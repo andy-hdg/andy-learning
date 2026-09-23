@@ -1,0 +1,21 @@
+# Skills. level: 1 (beginner) to 5 (expert), self-assessed.
+html-css:
+  name: HTML & CSS
+  category: web
+  level: 3
+javascript:
+  name: JavaScript
+  category: web
+  level: 2
+responsive:
+  name: { vi: Responsive design, en: Responsive design }
+  category: web
+  level: 3
+git:
+  name: Git & GitHub
+  category: tools
+  level: 2
+english:
+  name: { vi: Tiếng Anh, en: English }
+  category: language
+  level: 4
