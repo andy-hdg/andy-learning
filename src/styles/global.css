@@ -307,3 +307,43 @@ a {
     flex-direction: column;
   }
 }
+
+.prose {
+  max-width: 720px;
+}
+
+.prose h1 {
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  line-height: 1.2;
+  margin: 16px 0 8px;
+}
+
+.prose .lead {
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.prose code {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-size: 0.9em;
+}
+
+.prose pre {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+.back {
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.timeline-item[hidden] {
+  display: none;
+}
