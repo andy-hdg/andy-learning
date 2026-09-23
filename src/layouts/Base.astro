@@ -1,0 +1,44 @@
+---
+import '../styles/global.css';
+import { PROFILE } from '../lib/profile';
+import { withBase } from '../lib/utils';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = PROFILE.tagline } = Astro.props;
+const pageTitle = title ? `${title} · ${PROFILE.name}` : `${PROFILE.name} · Learning`;
+---
+
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href={withBase("/favicon.svg")} />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="container nav">
+        <a href={withBase('/')} class="brand">{PROFILE.name}</a>
+        <ul class="nav-links">
+          <li><a href={withBase('/#learning')}>Đã học</a></li>
+          <li><a href={withBase('/#certificates')}>Chứng chỉ</a></li>
+          <li><a href={withBase('/#about')}>Giới thiệu</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer container">
+      <small>© {new Date().getFullYear()} {PROFILE.name}</small>
+    </footer>
+  </body>
+</html>

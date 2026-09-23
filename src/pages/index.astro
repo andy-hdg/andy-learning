@@ -1,0 +1,95 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { PROFILE } from '../lib/profile';
+import { byDateDesc, formatMonth, withBase } from '../lib/utils';
+
+const learning = (await getCollection('learning')).sort(byDateDesc);
+const certificates = (await getCollection('certificates')).sort(byDateDesc);
+const categories = [...new Set(learning.map((item) => item.data.category))];
+---
+
+<Base>
+  <section class="hero container">
+    <h1>{PROFILE.name}</h1>
+    <p class="tagline">{PROFILE.tagline}</p>
+    <div class="stats">
+      <div class="stat"><span>{learning.length}</span><small>chủ đề đã học</small></div>
+      <div class="stat"><span>{certificates.length}</span><small>chứng chỉ</small></div>
+    </div>
+  </section>
+
+  <section id="learning" class="container section">
+    <div class="section-head">
+      <h2>Những gì đã học</h2>
+      <div class="filters" role="group" aria-label="Lọc theo chủ đề">
+        <button type="button" data-filter="" aria-pressed="true">Tất cả</button>
+        {categories.map((category) => (
+          <button type="button" data-filter={category} aria-pressed="false">{category}</button>
+        ))}
+      </div>
+    </div>
+    <ol class="timeline">
+      {learning.map((item) => {
+        const { title, category, date, status, description } = item.data;
+        const hasNotes = Boolean(item.body?.trim());
+        return (
+          <li class="timeline-item" data-category={category}>
+            <div class="meta">
+              <time datetime={date.toISOString()}>{formatMonth(date)}</time>
+              <span class="tag">{category}</span>
+              <span class={`status ${status}`}>{status === 'done' ? 'Hoàn thành' : 'Đang học'}</span>
+            </div>
+            <h3>{hasNotes ? <a href={withBase(`/learning/${item.id}/`)}>{title}</a> : title}</h3>
+            {description && <p>{description}</p>}
+          </li>
+        );
+      })}
+    </ol>
+  </section>
+
+  <section id="certificates" class="container section">
+    <div class="section-head">
+      <h2>Chứng chỉ</h2>
+    </div>
+    {certificates.length === 0 && <p class="empty">Chưa có chứng chỉ nào.</p>}
+    <div class="cert-grid">
+      {certificates.map(({ data }) => (
+        <article class="cert">
+          {data.image && <img src={withBase(data.image)} alt={data.title} loading="lazy" />}
+          <div class="cert-body">
+            <h3>{data.title}</h3>
+            <p class="issuer">{data.issuer}</p>
+            <p class="cert-meta">{formatMonth(data.date)}</p>
+            {data.credentialId && <p class="cert-meta">ID: {data.credentialId}</p>}
+            {data.url && <a href={data.url} target="_blank" rel="noopener">Xem chứng chỉ →</a>}
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section id="about" class="container section">
+    <div class="section-head">
+      <h2>Giới thiệu</h2>
+    </div>
+    <p>{PROFILE.about}</p>
+    <ul class="links">
+      {PROFILE.links.map((link) => (
+        <li><a href={link.url} target="_blank" rel="noopener">{link.label}</a></li>
+      ))}
+    </ul>
+  </section>
+</Base>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  const items = document.querySelectorAll<HTMLElement>('.timeline-item');
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      const filter = button.dataset.filter;
+      for (const b of buttons) b.setAttribute('aria-pressed', String(b === button));
+      for (const item of items) item.hidden = Boolean(filter) && item.dataset.category !== filter;
+    });
+  }
+</script>

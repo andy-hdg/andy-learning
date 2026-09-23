@@ -1,0 +1,30 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { formatMonth, withBase } from '../../lib/utils';
+
+export async function getStaticPaths() {
+  const learning = await getCollection('learning');
+  return learning
+    .filter((item) => item.body?.trim())
+    .map((item) => ({ params: { id: item.id }, props: { item } }));
+}
+
+const { item } = Astro.props;
+const { Content } = await render(item);
+const { title, category, date, status, description } = item.data;
+---
+
+<Base title={title} description={description}>
+  <article class="container section prose">
+    <a href={withBase('/#learning')} class="back">← Quay lại</a>
+    <h1>{title}</h1>
+    <div class="meta">
+      <time datetime={date.toISOString()}>{formatMonth(date)}</time>
+      <span class="tag">{category}</span>
+      <span class={`status ${status}`}>{status === 'done' ? 'Hoàn thành' : 'Đang học'}</span>
+    </div>
+    {description && <p class="lead">{description}</p>}
+    <Content />
+  </article>
+</Base>
